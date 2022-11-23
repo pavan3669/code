@@ -1,0 +1,784 @@
+C:\\Users\\sshalinpatil\\AppData\\Roaming\\nltk_data...\n",
+      "[nltk_data]   Package stopwords is already up-to-date!\n",
+      "[nltk_data] Downloading package punkt to\n",
+      "[nltk_data]     C:\\Users\\sshalinpatil\\AppData\\Roaming\\nltk_data...\n",
+      "[nltk_data]   Package punkt is already up-to-date!\n"
+     ]
+    }
+   ],	
+   "source": [
+    "import pandas as pd\n",
+    "from collections import defaultdict\n",
+    "import numpy as np\n",
+    "import re\n",
+    "import string\n",
+    "\n",
+    "import nltk\n",
+    "from nltk.corpus import stopwords\n",
+    "from nltk.tokenize import word_tokenize\n",
+    "nltk.download('stopwords')\n",
+    "nltk.download('punkt')\n",
+    "\n",
+    "from sentence_transformers import SentenceTransformer, util"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "53faec49",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# ARTIFICIAL INTELLIGENCE SGO\n",
+    "profile1 = ['Shraddha is a Manager in the Digital IA Advisory practice. She is graduated from the Pennsylvania State \\\n",
+    "             University with a masters degree in Information Systems. She has worked on a number of medium to large complex \\\n",
+    "             engagements for various Life Sciences and banking clients. Her area of expertise includes Robotic Process \\\n",
+    "             Automation (Blue Prism, UiPath, Automation Anywhere, Workfusion etc.) business technology transformation, process \\\n",
+    "             re-engineering, Data Analytics, Tableau, Alteryx data wrangling etc.. She has previously worked in both SDLC, \\\n",
+    "             hybrid and agile(scrum and Kanban)/DevOps/CICD models. She is also learning and developing use cases to implement \\\n",
+    "             automated solutions like cognitive intelligence bots, digital assistance using AWS, Google cloud, Machine \\\n",
+    "             Learning, Natural Language Processing, and Optical Character Recognition (OCR) etc. She enjoys travelling and is \\\n",
+    "             a fitness freak. Informatica MDM Software Development Life Cycle (SDLC) Microsoft Office Access Chatbot OCR \\\n",
+    "             Technology Process Improvement & Redesign Agile, Scrum Life Sciences, Pharmaceutical AWS Certified Solutions \\\n",
+    "             Architect AssociateUipath Advanced Developer Risk and Financial Advisory → Accounting and Internal Controls → \\\n",
+    "             Internal Audit (RFA) Life Sciences and Health Care → Life Sciences Cross Industry → Cross Sector (CI) Artificial \\\n",
+    "             Intelligence SGO']"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "f3311171",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# ARTIFICIAL INTELLIGENCE SGO\n",
+    "profile2 = ['Shubhra is professional with great enthusiasm, energy and positive attitude. Experienced, Ambitious and always \\\n",
+    "             looking to broaden her career path. Background lays broadly into Data Analytics, Talent Analytics, Program & \\\n",
+    "             Project Management, Agile, Scrum Master, Cyber, Governance, Reporting, Strategy, Leadership and Client \\\n",
+    "             Stakeholder Communications, and Data Visualizations. Data Analytics Business Intelligence Risk Analytics Tableau \\\n",
+    "             Data Management Scrum Agile CSM - Certified Scrum Master JIRA cybersecurity awareness cybersecurity technology \\\n",
+    "             strategy & business transformation Risk and Financial Advisory → Cyber and Strategic Risk → Cyber Strategy \\\n",
+    "             Consumer → Automotive Financial Services → Cross Sector (FS) Artificial Intelligence SGO']"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "a2725155",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# TO SHOW HOW DPN IS FAULTY\n",
+    "# Business: S&A, Industry: Consumer Products, Cross Business Offering: Buy M&A Strat\n",
+    "profile3 = ['Nhut is a Consultant in Strategy and Analytics portfolio. He is interested in consumer strategy and analytics \\\n",
+    "             projects in Technology, Media & Telecom and Financial Services industries. He has been tackling business-driven \\\n",
+    "             questions through data mining for large healthcare clients since he joined Deloitte. He has a strong background \\\n",
+    "             in data analytics and communication skills with the ability to work effectively with all levels in the team.\\\n",
+    "             uc berkeley Business Skills\\Analytics - Data Cleansing Data Collection Data Exploration Consulting → Strategy \\\n",
+    "             and Analytics → AI & Data Engineering Financial Services → Banking and Capital Markets Consumer → Consumer \\\n",
+    "             Products']\n",
+    "\n",
+    "profile4 = ['I have 20+ years experience in strategy, growth and transformation, mostly in food businesses. My experience \\\n",
+    "             includes both strategy management (BCG, OC&C) and industry at Nestlé and creating new businesses for Global Baby. \\\n",
+    "             I have led multiple strategic reviews, prepared numerous strategic plans and developed a rigorous, quantified \\\n",
+    "             approach to portfolio reviews. I also led transformation initiatives, especially innovations towards healthier \\\n",
+    "             and more sustainable nutrition and JVs for growth or restructuring. fmcg food & beverage consumer products \\\n",
+    "             consumer business mergers & acquisitions (m&a) portfolio management portfolio strategy joint ventures growth \\\n",
+    "             strategies ecommerce strategy organic food Corporate Development & Strategy Business Development Consultant \\\n",
+    "             Mergers and Acquisition Joint Venture Commercial Due Diligence (CDD) Corporate Development Business Skills\\\n",
+    "             Activity-Based Analysis Business Skills\\Analytics - Conjoint Analysis Channel Strategy Consulting → Strategy & \\\n",
+    "             Business Design Consumer and Industrial Products → Consumer Products']"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "id": "dfd53c64",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "profile5 = ['Nhut works as a consultant in the portfolio of strategy and analytics. Projects in the technology, media & \\\n",
+    "             telecommunications, and financial services sectors that focus on consumer strategy and analytics are of interest \\\n",
+    "             to him. Since he started working for Deloitte, he has been using data mining to answer business-driven problems \\\n",
+    "             for significant healthcare clients. He comes from a solid background in data analytics and communication abilities \\\n",
+    "             with the capacity to collaborate successfully with team members at all levels. Business Skills: Analytical Data \\\n",
+    "             Cleaning at UC Berkeley Data collection, data exploration, consulting, strategy, analytics, and artificial \\\n",
+    "             intelligence and data engineering Banking and Capital Markets Financial Services Products Consumers Consumers']"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "id": "704f4f22",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "profile6 = ['I am a graduate of IIT Indore with a minor in humanities and social sciences. Juggling between my mechanical \\\n",
+    "             major and the domains that I got to explore during the lockdown, I found my niche in areas of Deep Learning \\\n",
+    "             especially robotic vision with a budding interest in Reinforcement Learning. I am well acquainted with \\\n",
+    "             programming languages like Python (TensorFlow, Keras, OpenCV), and C++. To date, I have a CodeX medium \\\n",
+    "             publication and a book chapter published in an Elsevier journal. Presently, I am in the process of submitting \\\n",
+    "             another paper in the field of AI. I am a self-motivated person who is willing to go above and beyond on any \\\n",
+    "             project and learn valuable skills on my own time, which has enabled me in turning my mechanical major into a \\\n",
+    "             profile of my passion.']"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "09365a6d",
+   "metadata": {},
+   "source": [
+    "# Checking DPN Accuracy"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "id": "20998607",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')\n",
+    "\n",
+    "# Compute embedding\n",
+    "embedding_1= model.encode(profile1, convert_to_tensor=True)\n",
+    "embedding_2 = model.encode(profile2, convert_to_tensor=True)\n",
+    "embedding_3 = model.encode(profile3, convert_to_tensor=True)\n",
+    "embedding_4 = model.encode(profile4, convert_to_tensor=True)\n",
+    "embedding_5 = model.encode(profile5, convert_to_tensor=True)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "id": "b91a2445",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "tensor([[0.4154]])"
+      ]
+     },
+     "execution_count": 9,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "util.pytorch_cos_sim(embedding_3, embedding_4)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "id": "147cc0e2",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "tensor([[0.9459]])"
+      ]
+     },
+     "execution_count": 10,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "util.pytorch_cos_sim(embedding_3, embedding_5)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "id": "dadfd411",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "tensor([[0.4662]])\n",
+      "tensor([[0.6591]])\n"
+     ]
+    }
+   ],
+   "source": [
+    "sen1 = 'Global warming is here'\n",
+    "sen2 = 'Ocean temperature is rising'\n",
+    "print(util.pytorch_cos_sim(model.encode(sen1, convert_to_tensor=True), model.encode(sen2, convert_to_tensor=True)))\n",
+    "sen3 = \"The bottle is empty\"\n",
+    "sen4 = \"There is nothing in the bottle\"\n",
+    "print(util.pytorch_cos_sim(model.encode(sen3, convert_to_tensor=True), model.encode(sen4, convert_to_tensor=True)))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "ba2265ea",
+   "metadata": {},
+   "source": [
+    "# Data Cleaning"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "id": "696538c2",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "{'a',\n",
+       " 'about',\n",
+       " 'above',\n",
+       " 'after',\n",
+       " 'again',\n",
+       " 'against',\n",
+       " 'ain',\n",
+       " 'all',\n",
+       " 'am',\n",
+       " 'an',\n",
+       " 'and',\n",
+       " 'any',\n",
+       " 'are',\n",
+       " 'aren',\n",
+       " \"aren't\",\n",
+       " 'as',\n",
+       " 'at',\n",
+       " 'be',\n",
+       " 'because',\n",
+       " 'been',\n",
+       " 'before',\n",
+       " 'being',\n",
+       " 'below',\n",
+       " 'between',\n",
+       " 'both',\n",
+       " 'but',\n",
+       " 'by',\n",
+       " 'can',\n",
+       " 'couldn',\n",
+       " \"couldn't\",\n",
+       " 'd',\n",
+       " 'did',\n",
+       " 'didn',\n",
+       " \"didn't\",\n",
+       " 'do',\n",
+       " 'does',\n",
+       " 'doesn',\n",
+       " \"doesn't\",\n",
+       " 'doing',\n",
+       " 'don',\n",
+       " \"don't\",\n",
+       " 'down',\n",
+       " 'during',\n",
+       " 'each',\n",
+       " 'few',\n",
+       " 'for',\n",
+       " 'from',\n",
+       " 'further',\n",
+       " 'had',\n",
+       " 'hadn',\n",
+       " \"hadn't\",\n",
+       " 'has',\n",
+       " 'hasn',\n",
+       " \"hasn't\",\n",
+       " 'have',\n",
+       " 'haven',\n",
+       " \"haven't\",\n",
+       " 'having',\n",
+       " 'he',\n",
+       " 'her',\n",
+       " 'here',\n",
+       " 'hers',\n",
+       " 'herself',\n",
+       " 'him',\n",
+       " 'himself',\n",
+       " 'his',\n",
+       " 'how',\n",
+       " 'i',\n",
+       " 'if',\n",
+       " 'in',\n",
+       " 'into',\n",
+       " 'is',\n",
+       " 'isn',\n",
+       " \"isn't\",\n",
+       " 'it',\n",
+       " \"it's\",\n",
+       " 'its',\n",
+       " 'itself',\n",
+       " 'just',\n",
+       " 'll',\n",
+       " 'm',\n",
+       " 'ma',\n",
+       " 'me',\n",
+       " 'mightn',\n",
+       " \"mightn't\",\n",
+       " 'more',\n",
+       " 'most',\n",
+       " 'mustn',\n",
+       " \"mustn't\",\n",
+       " 'my',\n",
+       " 'myself',\n",
+       " 'needn',\n",
+       " \"needn't\",\n",
+       " 'no',\n",
+       " 'nor',\n",
+       " 'not',\n",
+       " 'now',\n",
+       " 'o',\n",
+       " 'of',\n",
+       " 'off',\n",
+       " 'on',\n",
+       " 'once',\n",
+       " 'only',\n",
+       " 'or',\n",
+       " 'other',\n",
+       " 'our',\n",
+       " 'ours',\n",
+       " 'ourselves',\n",
+       " 'out',\n",
+       " 'over',\n",
+       " 'own',\n",
+       " 're',\n",
+       " 's',\n",
+       " 'same',\n",
+       " 'shan',\n",
+       " \"shan't\",\n",
+       " 'she',\n",
+       " \"she's\",\n",
+       " 'should',\n",
+       " \"should've\",\n",
+       " 'shouldn',\n",
+       " \"shouldn't\",\n",
+       " 'so',\n",
+       " 'some',\n",
+       " 'such',\n",
+       " 't',\n",
+       " 'than',\n",
+       " 'that',\n",
+       " \"that'll\",\n",
+       " 'the',\n",
+       " 'their',\n",
+       " 'theirs',\n",
+       " 'them',\n",
+       " 'themselves',\n",
+       " 'then',\n",
+       " 'there',\n",
+       " 'these',\n",
+       " 'they',\n",
+       " 'this',\n",
+       " 'those',\n",
+       " 'through',\n",
+       " 'to',\n",
+       " 'too',\n",
+       " 'under',\n",
+       " 'until',\n",
+       " 'up',\n",
+       " 've',\n",
+       " 'very',\n",
+       " 'was',\n",
+       " 'wasn',\n",
+       " \"wasn't\",\n",
+       " 'we',\n",
+       " 'were',\n",
+       " 'weren',\n",
+       " \"weren't\",\n",
+       " 'what',\n",
+       " 'when',\n",
+       " 'where',\n",
+       " 'which',\n",
+       " 'while',\n",
+       " 'who',\n",
+       " 'whom',\n",
+       " 'why',\n",
+       " 'will',\n",
+       " 'with',\n",
+       " 'won',\n",
+       " \"won't\",\n",
+       " 'wouldn',\n",
+       " \"wouldn't\",\n",
+       " 'y',\n",
+       " 'you',\n",
+       " \"you'd\",\n",
+       " \"you'll\",\n",
+       " \"you're\",\n",
+       " \"you've\",\n",
+       " 'your',\n",
+       " 'yours',\n",
+       " 'yourself',\n",
+       " 'yourselves'}"
+      ]
+     },
+     "execution_count": 12,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "stop_words = set(stopwords.words('english'))\n",
+    "stop_words"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "id": "f2899d33",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "profiles = [profile1[0], profile2[0], profile3[0], profile4[0], profile5[0], profile6[0]]\n",
+    "\n",
+    "def clean_text(text):\n",
+    "    '''Make text lowercase, remove punctuation'''\n",
+    "    text = str(text).lower()\n",
+    "    text = re.sub('[%s]' % re.escape(string.punctuation), '', text)\n",
+    "    text = re.sub('\\n', '', text)\n",
+    "    \n",
+    "    word_tokens = word_tokenize(text)\n",
+    "    for w in word_tokens:\n",
+    "        if  w.lower() in stop_words:\n",
+    "            text = text.replace(w, '')\n",
+    "                \n",
+    "    return text\n",
+    "\n",
+    "new_profiles = []\n",
+    "for p in profiles:\n",
+    "    new_profiles.append(clean_text(p))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "905c3015",
+   "metadata": {},
+   "source": [
+    "# Create Sample DataFrame"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "id": "06ec5792",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "profiles = {'Name': ['Shraddha Joshi', 'Shubhra Mani', 'Nhut Nguyen', 'Bruno Romand-Monnier', 'Nhut Paraphrased', 'Sakshee'],\n",
+    "            'Profiles': [new_profiles[0], new_profiles[1], new_profiles[2], new_profiles[3], new_profiles[4], new_profiles[5]]}"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "id": "06c7c96f",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Name</th>\n",
+       "      <th>Profiles</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>Shraddha Joshi</td>\n",
+       "      <td>shrddh   mnger   digitl i dvory prctice   grdu...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>Shubhra Mani</td>\n",
+       "      <td>shubhra  professional  great enthusiasm energy...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>Nhut Nguyen</td>\n",
+       "      <td>nhut   consultnt  strtegy nd nlytics portfolio...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>Bruno Romand-Monnier</td>\n",
+       "      <td>20 yers experence n stregy growth  trnsmon m...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>Nhut Paraphrased</td>\n",
+       "      <td>nhut works   csultnt   portfolio  strtegy nd n...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>5</th>\n",
+       "      <td>Sakshee</td>\n",
+       "      <td>grdute  t ndore wth  mnor n humntes nd socl...</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "                   Name                                           Profiles\n",
+       "0        Shraddha Joshi  shrddh   mnger   digitl i dvory prctice   grdu...\n",
+       "1          Shubhra Mani  shubhra  professional  great enthusiasm energy...\n",
+       "2           Nhut Nguyen  nhut   consultnt  strtegy nd nlytics portfolio...\n",
+       "3  Bruno Romand-Monnier    20 yers experence n stregy growth  trnsmon m...\n",
+       "4      Nhut Paraphrased  nhut works   csultnt   portfolio  strtegy nd n...\n",
+       "5               Sakshee     grdute  t ndore wth  mnor n humntes nd socl..."
+      ]
+     },
+     "execution_count": 15,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "df = pd.DataFrame(profiles)\n",
+    "df"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 16,
+   "id": "c4a899ec",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Name</th>\n",
+       "      <th>Profiles</th>\n",
+       "      <th>Embedding</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>Shraddha Joshi</td>\n",
+       "      <td>shrddh   mnger   digitl i dvory prctice   grdu...</td>\n",
+       "      <td>[tensor(-0.0015), tensor(-0.0466), tensor(-0.0...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>Shubhra Mani</td>\n",
+       "      <td>shubhra  professional  great enthusiasm energy...</td>\n",
+       "      <td>[tensor(-0.0043), tensor(0.0279), tensor(-0.04...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>Nhut Nguyen</td>\n",
+       "      <td>nhut   consultnt  strtegy nd nlytics portfolio...</td>\n",
+       "      <td>[tensor(-0.0323), tensor(-0.0315), tensor(-0.0...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>Bruno Romand-Monnier</td>\n",
+       "      <td>20 yers experence n stregy growth  trnsmon m...</td>\n",
+       "      <td>[tensor(0.0500), tensor(-0.0821), tensor(-0.00...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>Nhut Paraphrased</td>\n",
+       "      <td>nhut works   csultnt   portfolio  strtegy nd n...</td>\n",
+       "      <td>[tensor(-0.0314), tensor(-0.0393), tensor(-0.0...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>5</th>\n",
+       "      <td>Sakshee</td>\n",
+       "      <td>grdute  t ndore wth  mnor n humntes nd socl...</td>\n",
+       "      <td>[tensor(-0.0323), tensor(-0.0680), tensor(-0.0...</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "                   Name                                           Profiles  \\\n",
+       "0        Shraddha Joshi  shrddh   mnger   digitl i dvory prctice   grdu...   \n",
+       "1          Shubhra Mani  shubhra  professional  great enthusiasm energy...   \n",
+       "2           Nhut Nguyen  nhut   consultnt  strtegy nd nlytics portfolio...   \n",
+       "3  Bruno Romand-Monnier    20 yers experence n stregy growth  trnsmon m...   \n",
+       "4      Nhut Paraphrased  nhut works   csultnt   portfolio  strtegy nd n...   \n",
+       "5               Sakshee     grdute  t ndore wth  mnor n humntes nd socl...   \n",
+       "\n",
+       "                                           Embedding  \n",
+       "0  [tensor(-0.0015), tensor(-0.0466), tensor(-0.0...  \n",
+       "1  [tensor(-0.0043), tensor(0.0279), tensor(-0.04...  \n",
+       "2  [tensor(-0.0323), tensor(-0.0315), tensor(-0.0...  \n",
+       "3  [tensor(0.0500), tensor(-0.0821), tensor(-0.00...  \n",
+       "4  [tensor(-0.0314), tensor(-0.0393), tensor(-0.0...  \n",
+       "5  [tensor(-0.0323), tensor(-0.0680), tensor(-0.0...  "
+      ]
+     },
+     "execution_count": 16,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "embeddings = []\n",
+    "\n",
+    "for p in df['Profiles'].values:\n",
+    "    embedding = model.encode(p, convert_to_tensor=True)\n",
+    "    embeddings.append(embedding)\n",
+    "\n",
+    "df['Embedding'] = embeddings\n",
+    "df"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "cbe29f32",
+   "metadata": {},
+   "source": [
+    "# Recommend Profiles"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 17,
+   "id": "43a85465",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def create_heatmap(similarity, cmap = \"YlGnBu\"):\n",
+    "    df_temp = pd.DataFrame(similarity)\n",
+    "    df_temp.columns = list(df['Name'].values)\n",
+    "    df_temp.index = list(df['Name'].values)\n",
+    "    fig, ax = plt.subplots(figsize=(5,5))\n",
+    "    sns.heatmap(df_temp, cmap=cmap)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 24,
+   "id": "5650adda",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def rank_profiles(keywords, names, embedding):\n",
+    "    main_embedding = model.encode(keywords, convert_to_tensor=True)\n",
+    "    \n",
+    "    scores = defaultdict(list)\n",
+    "    for name, em in zip(names, embeddings):\n",
+    "        similarity_score = util.pytorch_cos_sim(main_embedding, em)\n",
+    "        scores[name].append(similarity_score)\n",
+    "    \n",
+    "    results = sorted(scores.items(), key=lambda x:x[1], reverse=True)\n",
+    "    score = []\n",
+    "    \n",
+    "    for val in results:\n",
+    "        score.append(np.array(val[1])[0])\n",
+    "        print(val[0], ':', np.array(val[1])[0])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 25,
+   "id": "95d98c26",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Sakshee : 1.0\n",
+      "Shraddha Joshi : 0.66865593\n",
+      "Nhut Paraphrased : 0.5801959\n",
+      "Nhut Nguyen : 0.5070863\n",
+      "Bruno Romand-Monnier : 0.423927\n",
+      "Shubhra Mani : 0.34650254\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "C:\\Users\\sshalinpatil\\AppData\\Local\\Temp\\ipykernel_25408\\3977223531.py:13: FutureWarning: The input object of type 'Tensor' is an array-like implementing one of the corresponding protocols (`__array__`, `__array_interface__` or `__array_struct__`); but not a sequence (or 0-D). In the future, this object will be coerced as if it was first converted using `np.array(obj)`. To retain the old behaviour, you have to either modify the type 'Tensor', or assign to an empty array created with `np.empty(correct_shape, dtype=object)`.\n",
+      "  score.append(np.array(val[1])[0])\n",
+      "C:\\Users\\sshalinpatil\\AppData\\Local\\Temp\\ipykernel_25408\\3977223531.py:14: FutureWarning: The input object of type 'Tensor' is an array-like implementing one of the corresponding protocols (`__array__`, `__array_interface__` or `__array_struct__`); but not a sequence (or 0-D). In the future, this object will be coerced as if it was first converted using `np.array(obj)`. To retain the old behaviour, you have to either modify the type 'Tensor', or assign to an empty array created with `np.empty(correct_shape, dtype=object)`.\n",
+      "  print(val[0], ':', np.array(val[1])[0])\n"
+     ]
+    }
+   ],
+   "source": [
+    "keywords = [new_profiles[5]]\n",
+    "rank_profiles(keywords, df['Name'].values, df['Embedding'].values)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "b0d0d852",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "2cdf32f7",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3 (ipykernel)",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.9.13"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
+
